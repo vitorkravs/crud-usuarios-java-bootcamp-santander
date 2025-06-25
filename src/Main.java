@@ -1,7 +1,10 @@
 import br.com.dio.dao.UserDAO;
+import br.com.dio.exception.EmptyStorageException;
+import br.com.dio.exception.UserNotFoundException;
 import br.com.dio.model.MenuOption;
 import br.com.dio.model.UserModel;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
@@ -33,25 +36,44 @@ public class Main {
                     System.out.printf("Usuário cadastrado com sucesso %s", user);
                 }
                 case UPDATE -> {
-                    var user = dao.update(requestToUpdate());
-                    System.out.printf("Usuário atualizado com sucesso %s", user);
+                    try {
+                        var user = dao.update(requestToUpdate());
+                        System.out.printf("Usuário atualizado com sucesso %s", user);
+                    } catch (UserNotFoundException | EmptyStorageException ex) {
+                        System.out.println(ex.getMessage());
+                    }
                 }
                 case DELETE -> {
-                    dao.delete(requestId());
-                    System.out.println("Usuário deletado com sucesso");
+                    try {
+                        dao.delete(requestId());
+                        System.out.println("Usuário deletado com sucesso");
+                    } catch (UserNotFoundException | EmptyStorageException ex){
+                        System.out.println(ex.getMessage());
+                    }
+
                 }
                 case FIND_BY_ID -> {
-                    var idRequest = requestId();
-                    var users = dao.findById(idRequest);
-                    System.out.printf("Usuário com id %s", idRequest);
-                    System.out.println(users);
+                    try {
+                        var idRequest = requestId();
+                        var users = dao.findById(idRequest);
+                        System.out.printf("Usuário com id %s", idRequest);
+                        System.out.println(users);
+                    } catch (UserNotFoundException | EmptyStorageException ex) {
+                        System.out.println(ex.getMessage());
+                    } catch (Exception ex) {
+                        System.out.println(ex.getMessage());
+                    }
                 }
                 case FIND_ALL -> {
-                    var users = dao.findAll();
-                    System.out.println("Usuários Cadastrados");
-                    System.out.println("====================");
-                    users.forEach(System.out::println);
-                    System.out.println("====================");
+                    try {
+                        var users = dao.findAll();
+                        System.out.println("Usuários Cadastrados");
+                        System.out.println("====================");
+                        users.forEach(System.out::println);
+                        System.out.println("====================");
+                    } catch (UserNotFoundException | EmptyStorageException ex){
+                        System.out.println(ex.getMessage());
+                    }
                 }
                 case EXIT -> System.exit(0);
                 default -> throw new IllegalStateException("Unexpected value: " + selectedOption);
@@ -74,7 +96,7 @@ public class Main {
         System.out.println("Informe a data de nascimento do usuário: (dd/MM/yyyy)");
         var birthdayString = scanner.next();
         var formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        var birthday = OffsetDateTime.parse(birthdayString, formatter);
+        var birthday = LocalDate.parse(birthdayString, formatter);
 
         return new UserModel(0, name, email, birthday);
     }
@@ -89,7 +111,7 @@ public class Main {
         System.out.println("Informe a data de nascimento do usuário: (dd/MM/yyyy)");
         var birthdayString = scanner.next();
         var formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        var birthday = OffsetDateTime.parse(birthdayString, formatter);
+        var birthday = LocalDate.parse(birthdayString, formatter);
 
         return new UserModel(id, name, email, birthday);
     }
